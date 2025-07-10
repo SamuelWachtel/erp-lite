@@ -1,4 +1,6 @@
 ﻿@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
 
 <MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode"/>
 <MudPopoverProvider/>
@@ -42,8 +44,19 @@
             PaletteDark = _darkPalette,
             LayoutProperties = new LayoutProperties()
         };
-    }
+        
+        var uri = new Uri(Navigation.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
 
+        if (query.TryGetValue("cultureError", out var val) && val == "true")
+        {
+            Snackbar.Add("Unknown culture, defaulted to Czech (cs)", Severity.Warning);
+
+            var cleanUrl = uri.GetLeftPart(UriPartial.Path);
+            Navigation.NavigateTo(cleanUrl, forceLoad: false);
+        }
+    }
+    
     private void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;

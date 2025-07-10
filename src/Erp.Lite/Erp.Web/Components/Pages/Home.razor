@@ -1,4 +1,8 @@
-﻿@page "/"
+﻿@page "/{Culture}"
+@using System.Globalization
+@using Erp.Web.Localization
+@inject NavigationManager Navigation
+@inject LocalizationCache Loc
 
 <PageTitle>Home</PageTitle>
 
@@ -16,6 +20,7 @@
 <MudText Typo="Typo.h5" GutterBottom="true">Interactivity in this Template</MudText>
 <br/>
 <MudText Typo="Typo.body2">
+    @Loc.Welcome
     When you opt for the "Global" Interactivity Location, <br/>
     the render modes are defined in App.razor and consequently apply to all child components.<br/>
     In this case, providers are globally set in the MainLayout.<br/>
@@ -57,3 +62,21 @@
         More details
     </MudLink>
 </MudText>
+
+@code
+{
+    [Parameter] public string? Culture { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (!string.IsNullOrWhiteSpace(Culture))
+        {
+            var cultureInfo = new CultureInfo(Culture);
+            CultureInfo.CurrentCulture = cultureInfo;
+            CultureInfo.CurrentUICulture = cultureInfo;
+            Loc.SetCulture(cultureInfo);
+        }
+    }
+    
+}
+
