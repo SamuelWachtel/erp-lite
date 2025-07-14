@@ -10,13 +10,12 @@
     <ImportMap/>
     <link rel="icon" type="image/ico" href="favicon.ico"/>
     <HeadOutlet @rendermode="InteractiveServer"/>
-    <title>ERP</title>
 </head>
 
 <body>
-<Routes @rendermode="InteractiveServer"/>
-<script src="/_framework/blazor.web.js"></script>
-<script src=@AssetPath(Assets["_content/MudBlazor/MudBlazor.min.js"])></script>
+    <script src="/_framework/blazor.web.js"></script>
+    <script src=@AssetPath(Assets["_content/MudBlazor/MudBlazor.min.js"])></script>
+    <Routes @rendermode="InteractiveServer"/>
 </body>
 
 </html>

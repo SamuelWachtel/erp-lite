@@ -1,10 +1,13 @@
 ﻿@page "/{Culture}"
 @using System.Globalization
-@using Erp.Web.Localization
+@* @using Erp.Web.Localization *@
 @inject NavigationManager Navigation
-@inject LocalizationCache Loc
+@* @inject LocalizationCache Loc *@
 
 <PageTitle>Home</PageTitle>
+<button @onclick="OnClick">Click me</button>
+
+<p>@_clickedMessage</p>
 
 <MudText Typo="Typo.h3" GutterBottom="true">Hello, world!</MudText>
 <MudText Class="mb-8">Welcome to your new app, powered by MudBlazor and the .NET 9 Template!</MudText>
@@ -20,7 +23,7 @@
 <MudText Typo="Typo.h5" GutterBottom="true">Interactivity in this Template</MudText>
 <br/>
 <MudText Typo="Typo.body2">
-    @Loc.Welcome
+    @* @Loc.Welcome *@
     When you opt for the "Global" Interactivity Location, <br/>
     the render modes are defined in App.razor and consequently apply to all child components.<br/>
     In this case, providers are globally set in the MainLayout.<br/>
@@ -74,8 +77,15 @@
             var cultureInfo = new CultureInfo(Culture);
             CultureInfo.CurrentCulture = cultureInfo;
             CultureInfo.CurrentUICulture = cultureInfo;
-            Loc.SetCulture(cultureInfo);
+            // Loc.SetCulture(cultureInfo);
         }
+    }
+    
+    private string _clickedMessage = "";
+
+    private void OnClick()
+    {
+        _clickedMessage = "Button clicked at " + DateTime.Now.ToLongTimeString();
     }
     
 }

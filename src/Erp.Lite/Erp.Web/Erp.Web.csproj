@@ -8,6 +8,7 @@
 
 
     <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.0" />
         <PackageReference Include="MudBlazor" Version="8.*"/>
     </ItemGroup>
 
@@ -53,5 +54,12 @@
         <AutoGen>True</AutoGen>
         <DependentUpon>Resources.cs.resx</DependentUpon>
       </Compile>
+    </ItemGroup>
+
+
+    <ItemGroup>
+      <Content Remove="Components\Pages\Login.razor" />
+      <Content Remove="Components\Pages\Logout.razor" />
+      <Content Remove="Components\Pages\LogOutPage.razor" />
     </ItemGroup>
 </Project>

@@ -1,7 +1,7 @@
+using System.Globalization;
 using Microsoft.Extensions.Options;
-using Erp.Web.Localization;
 
-namespace Erp.Web.Extensions
+namespace Erp.Web.Localization
 {
     public class LocalizationMiddleware
     {
@@ -25,6 +25,7 @@ namespace Erp.Web.Extensions
             }
 
             if (path.StartsWith("/_framework") ||
+                path.StartsWith("/_blazor") ||
                 path.StartsWith("/_content") ||
                 path.StartsWith("/favicon.ico") ||
                 path.StartsWith("/css") ||
@@ -34,6 +35,12 @@ namespace Erp.Web.Extensions
                 return;
             }
 
+            if (!HttpMethods.IsGet(context.Request.Method))
+            {
+                await _next(context);
+                return;
+            }
+            
             var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
             if (segments.Length == 0)
             {
@@ -42,19 +49,34 @@ namespace Erp.Web.Extensions
             }
 
             var cultureCandidate = segments[0].ToLower();
-
+            
             if (_localizationOptions.SupportedCultures.Contains(cultureCandidate))
             {
+                var mappedCulture = cultureCandidate switch
+                {
+                    "cs" => "cs-CZ",
+                    "en" => "en-US",
+                    _ => _localizationOptions.DefaultCulture
+                };
+
+                var cultureInfo = new CultureInfo(mappedCulture);
+                CultureInfo.CurrentCulture = cultureInfo;
+                CultureInfo.CurrentUICulture = cultureInfo;
+
                 await _next(context);
                 return;
             }
-
-            if (cultureCandidate.Length == 2 && cultureCandidate.All(char.IsLetter))
+            
+            if (cultureCandidate.Length == 2 && !_localizationOptions.SupportedCultures.Contains(cultureCandidate))
             {
                 var restOfPath = string.Join('/', segments.Skip(1));
                 var fixedPath = "/" + _localizationOptions.DefaultCulture + (string.IsNullOrEmpty(restOfPath) ? "" : "/" + restOfPath);
-                context.Response.Redirect(fixedPath, false);
-                return;
+
+                if (!context.Request.Path.Value.Equals(fixedPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    context.Response.Redirect(fixedPath, false);
+                    return;
+                }
             }
 
             var newPath = "/" + _localizationOptions.DefaultCulture + path;

@@ -1,14 +1,11 @@
 using System.Globalization;
 using MudBlazor.Services;
 using Erp.Web.Components;
-using Erp.Web.Extensions;
 using Erp.Web.Localization;
 using Microsoft.AspNetCore.Localization;
 using MudBlazor;
 
 var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.AddMudServices();
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
@@ -16,6 +13,7 @@ builder.Services.AddRazorComponents()
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddLocalization(options => options.ResourcesPath = "Localization");
+
 builder.Services.AddScoped<LocalizationCache>(sp =>
 {
     var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
@@ -40,7 +38,6 @@ var requestLocalizationOptions = new RequestLocalizationOptions()
 builder.Services.AddMudServices(config =>
 {
     config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
-
     config.SnackbarConfiguration.PreventDuplicates = false;
     config.SnackbarConfiguration.NewestOnTop = false;
     config.SnackbarConfiguration.ShowCloseIcon = true;
@@ -52,9 +49,9 @@ builder.Services.AddMudServices(config =>
 
 var app = builder.Build();
 
-app.UseRequestLocalization(requestLocalizationOptions);
-
 app.UseCultureRedirect();
+
+app.UseRequestLocalization(requestLocalizationOptions);
 
 if (!app.Environment.IsDevelopment())
 {

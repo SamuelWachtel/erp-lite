@@ -1,4 +1,4 @@
-namespace Erp.Web.Extensions;
+namespace Erp.Web.Localization;
 
 public static class LocalizationMiddlewareExtension
 {
