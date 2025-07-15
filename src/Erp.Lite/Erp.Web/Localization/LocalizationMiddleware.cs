@@ -18,6 +18,15 @@ namespace Erp.Web.Localization
         {
             var path = context.Request.Path.Value ?? string.Empty;
 
+            // ✅ Skip processing for POSTs and OIDC
+            if (!HttpMethods.IsGet(context.Request.Method) ||
+                path.StartsWith("/signin-oidc", StringComparison.OrdinalIgnoreCase) ||
+                path.StartsWith("/connect", StringComparison.OrdinalIgnoreCase)) // For OpenIddict endpoints
+            {
+                await _next(context);
+                return;
+            }
+
             if (path.Length > 1 && path.EndsWith("/"))
             {
                 context.Response.Redirect(path.TrimEnd('/'), false);
@@ -25,7 +34,11 @@ namespace Erp.Web.Localization
             }
 
             if (path.StartsWith("/_framework") ||
+                path.StartsWith("/signin-oidc") ||
+                path.StartsWith("/connect") ||
                 path.StartsWith("/_blazor") ||
+                path.StartsWith("/login") ||
+                path.StartsWith("/logout") ||
                 path.StartsWith("/_content") ||
                 path.StartsWith("/favicon.ico") ||
                 path.StartsWith("/css") ||
@@ -35,12 +48,6 @@ namespace Erp.Web.Localization
                 return;
             }
 
-            if (!HttpMethods.IsGet(context.Request.Method))
-            {
-                await _next(context);
-                return;
-            }
-            
             var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
             if (segments.Length == 0)
             {
@@ -49,7 +56,7 @@ namespace Erp.Web.Localization
             }
 
             var cultureCandidate = segments[0].ToLower();
-            
+
             if (_localizationOptions.SupportedCultures.Contains(cultureCandidate))
             {
                 var mappedCulture = cultureCandidate switch
@@ -66,11 +73,12 @@ namespace Erp.Web.Localization
                 await _next(context);
                 return;
             }
-            
+
             if (cultureCandidate.Length == 2 && !_localizationOptions.SupportedCultures.Contains(cultureCandidate))
             {
                 var restOfPath = string.Join('/', segments.Skip(1));
-                var fixedPath = "/" + _localizationOptions.DefaultCulture + (string.IsNullOrEmpty(restOfPath) ? "" : "/" + restOfPath);
+                var fixedPath = "/" + _localizationOptions.DefaultCulture +
+                                (string.IsNullOrEmpty(restOfPath) ? "" : "/" + restOfPath);
 
                 if (!context.Request.Path.Value.Equals(fixedPath, StringComparison.OrdinalIgnoreCase))
                 {

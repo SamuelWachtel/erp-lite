@@ -58,8 +58,6 @@
 
 
     <ItemGroup>
-      <Content Remove="Components\Pages\Login.razor" />
-      <Content Remove="Components\Pages\Logout.razor" />
       <Content Remove="Components\Pages\LogOutPage.razor" />
     </ItemGroup>
 </Project>
