@@ -47,19 +47,15 @@ builder.Services.AddAuthentication(options =>
         options.Scope.Add("profile");
         options.Scope.Add("email");
 
-        options.SaveTokens = true; // Saves access & refresh tokens in auth session
+        options.SaveTokens = true;
 
-        options.CallbackPath = "/signin-oidc";              // This corresponds to https://localhost:7104/signin-oidc
+        options.CallbackPath = "/signin-oidc";
         options.SignedOutCallbackPath = "/signout-callback-oidc"; 
 
         options.UsePkce = true; 
-        // PKCE settings (usually automatic in ASP.NET Core)
 
-        // Validate tokens, optional settings
         options.TokenValidationParameters.NameClaimType = "name";
         options.TokenValidationParameters.RoleClaimType = "role";
-
-        // You can also handle events for custom logic if needed
     });
 
 
