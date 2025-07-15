@@ -1,6 +1,7 @@
 using System.Globalization;
 using MudBlazor.Services;
 using Erp.Web.Components;
+using Erp.Web.Config;
 using Erp.Web.Localization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -29,6 +30,10 @@ builder.Services.AddScoped<LocalizationCache>(sp =>
     return new LocalizationCache(culture);
 });
 
+var oidcSettingsSection = builder.Configuration.GetSection("Authentication");
+builder.Services.Configure<OidcSettings>(oidcSettingsSection);
+var oidcSettings = oidcSettingsSection.Get<OidcSettings>()!;
+
 builder.Services.AddAuthentication(options =>
     {
         options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -37,25 +42,34 @@ builder.Services.AddAuthentication(options =>
     .AddCookie()
     .AddOpenIdConnect(options =>
     {
-        options.Authority = "https://localhost:7056"; // Your Identity Provider URL
+        options.Authority = oidcSettings.Authority;
+        options.ClientId = oidcSettings.ClientId;
+        options.ResponseType = oidcSettings.ResponseType;
+        options.RequireHttpsMetadata = oidcSettings.RequireHttpsMetadata;
 
-        options.ClientId = "my-public-client"; // Client id registered in your IdP
-        options.ResponseType = "code"; // Authorization code flow recommended
+        options.SaveTokens = oidcSettings.SaveTokens;
+
+        options.CallbackPath = new PathString(new Uri(oidcSettings.RedirectUri).AbsolutePath);
+        options.SignedOutCallbackPath = new PathString(new Uri(oidcSettings.PostLogoutRedirectUri).AbsolutePath);
+
+        options.UsePkce = true;
 
         options.Scope.Clear();
-        options.Scope.Add("openid");
-        options.Scope.Add("profile");
-        options.Scope.Add("email");
-
-        options.SaveTokens = true;
-
-        options.CallbackPath = "/signin-oidc";
-        options.SignedOutCallbackPath = "/signout-callback-oidc"; 
-
-        options.UsePkce = true; 
+        foreach (var scope in oidcSettings.Scopes)
+        {
+            options.Scope.Add(scope);
+        }
 
         options.TokenValidationParameters.NameClaimType = "name";
         options.TokenValidationParameters.RoleClaimType = "role";
+        
+        if (builder.Environment.IsDevelopment())
+        {
+            options.BackchannelHttpHandler = new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+            };
+        }
     });
 
 
@@ -85,6 +99,20 @@ builder.Services.AddMudServices(config =>
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
+
+builder.Services.AddHttpClient("myClient")
+    .ConfigurePrimaryHttpMessageHandler(() =>
+    {
+        if (builder.Environment.IsDevelopment())
+        {
+            return new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+            };
+        }
+
+        return new HttpClientHandler();
+    });
 
 var app = builder.Build();
 
