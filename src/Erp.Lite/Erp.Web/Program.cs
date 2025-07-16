@@ -3,7 +3,9 @@ using MudBlazor.Services;
 using Erp.Web.Components;
 using Erp.Web.Extensions;
 using Erp.Web.Localization;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.WebUtilities;
 using MudBlazor;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -52,9 +54,9 @@ builder.Services.AddMudServices(config =>
 
 var app = builder.Build();
 
-app.UseRequestLocalization(requestLocalizationOptions);
-
 app.UseCultureRedirect();
+
+app.UseRequestLocalization(requestLocalizationOptions);
 
 if (!app.Environment.IsDevelopment())
 {
@@ -64,11 +66,36 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.UseAntiforgery();
 
 app.MapStaticAssets();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+app.MapGet("/login", async context =>
+{
+    await context.ChallengeAsync(OpenIdConnectDefaults.AuthenticationScheme, new AuthenticationProperties
+    {
+        RedirectUri = "/" // redirect after successful login
+    });
+});
+
+app.MapGet("logout", async context =>
+{
+    // Redirect user to the identity provider's logout endpoint with post logout redirect URI
+    var postLogoutRedirectUri = "https://localhost:7104/signout-callback-oidc"; // your client app URL after logout
+
+    var logoutUrl = QueryHelpers.AddQueryString("https://localhost:7056/connect/logout", new Dictionary<string, string?>
+    {
+        ["post_logout_redirect_uri"] = postLogoutRedirectUri
+    });
+
+    context.Response.Redirect(logoutUrl);
+    await Task.CompletedTask;
+});
 
 app.Run();
