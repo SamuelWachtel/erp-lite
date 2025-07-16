@@ -1,6 +1,7 @@
 using System.Globalization;
 using MudBlazor.Services;
 using Erp.Web.Components;
+using Erp.Web.Config;
 using Erp.Web.Extensions;
 using Erp.Web.Localization;
 using Microsoft.AspNetCore.Authentication;
