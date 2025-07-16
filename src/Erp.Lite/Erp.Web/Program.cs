@@ -1,16 +1,9 @@
 using System.Globalization;
 using MudBlazor.Services;
 using Erp.Web.Components;
-using Erp.Web.Config;
 using Erp.Web.Extensions;
 using Erp.Web.Localization;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.Localization;
-using Microsoft.AspNetCore.WebUtilities;
 using MudBlazor;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -34,49 +27,6 @@ builder.Services.AddScoped<LocalizationCache>(sp =>
 
 builder.Services.Configure<LocalizationOptions>(
     builder.Configuration.GetSection("Localization"));
-
-var oidcSettingsSection = builder.Configuration.GetSection("Authentication");
-builder.Services.Configure<OidcSettings>(oidcSettingsSection);
-var oidcSettings = oidcSettingsSection.Get<OidcSettings>()!;
-
-builder.Services.AddAuthentication(options =>
-    {
-        options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
-    })
-    .AddCookie()
-    .AddOpenIdConnect(options =>
-    {
-        options.Authority = oidcSettings.Authority;
-        options.ClientId = oidcSettings.ClientId;
-        options.ResponseType = oidcSettings.ResponseType;
-        options.RequireHttpsMetadata = oidcSettings.RequireHttpsMetadata;
-
-        options.SaveTokens = oidcSettings.SaveTokens;
-
-        options.CallbackPath = new PathString(new Uri(oidcSettings.RedirectUri).AbsolutePath);
-        options.SignedOutCallbackPath = new PathString(new Uri(oidcSettings.PostLogoutRedirectUri).AbsolutePath);
-
-        options.UsePkce = true;
-
-        options.Scope.Clear();
-        foreach (var scope in oidcSettings.Scopes)
-        {
-            options.Scope.Add(scope);
-        }
-
-        options.TokenValidationParameters.NameClaimType = "name";
-        options.TokenValidationParameters.RoleClaimType = "role";
-        
-        if (builder.Environment.IsDevelopment())
-        {
-            options.BackchannelHttpHandler = new HttpClientHandler
-            {
-                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-            };
-        }
-    });
-
 
 var localizationOptions = builder.Configuration
     .GetSection("Localization")
@@ -102,9 +52,9 @@ builder.Services.AddMudServices(config =>
 
 var app = builder.Build();
 
-app.UseCultureRedirect();
-
 app.UseRequestLocalization(requestLocalizationOptions);
+
+app.UseCultureRedirect();
 
 if (!app.Environment.IsDevelopment())
 {
@@ -114,36 +64,11 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication();
-app.UseAuthorization();
-
 app.UseAntiforgery();
 
 app.MapStaticAssets();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
-
-app.MapGet("/login", async context =>
-{
-    await context.ChallengeAsync(OpenIdConnectDefaults.AuthenticationScheme, new AuthenticationProperties
-    {
-        RedirectUri = "/" // redirect after successful login
-    });
-});
-
-app.MapGet("logout", async context =>
-{
-    // Redirect user to the identity provider's logout endpoint with post logout redirect URI
-    var postLogoutRedirectUri = "https://localhost:7104/signout-callback-oidc"; // your client app URL after logout
-
-    var logoutUrl = QueryHelpers.AddQueryString("https://localhost:7056/connect/logout", new Dictionary<string, string?>
-    {
-        ["post_logout_redirect_uri"] = postLogoutRedirectUri
-    });
-
-    context.Response.Redirect(logoutUrl);
-    await Task.CompletedTask;
-});
 
 app.Run();
