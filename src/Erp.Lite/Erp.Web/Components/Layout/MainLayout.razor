@@ -11,6 +11,14 @@
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())"/>
         <MudText Typo="Typo.h5" Class="ml-3">Application</MudText>
         <MudSpacer/>
+        <AuthorizeView>
+            <Authorized>
+                <MudButton OnClick="@(() => Navigation.NavigateTo("/logout", true))">Logout</MudButton>
+            </Authorized>
+            <NotAuthorized>
+                <MudButton OnClick="@(() => Navigation.NavigateTo("/login", true))">Login</MudButton>
+            </NotAuthorized>
+        </AuthorizeView>
         <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle"/>
         <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End"/>
     </MudAppBar>
