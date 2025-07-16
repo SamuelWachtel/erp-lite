@@ -61,7 +61,7 @@ namespace Erp.Web.Localization
             {
                 var mappedCulture = cultureCandidate switch
                 {
-                    "cs" => "cs-CZ",
+                    "cz" => "cs-CZ",
                     "en" => "en-US",
                     _ => _localizationOptions.DefaultCulture
                 };
