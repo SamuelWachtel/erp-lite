@@ -65,7 +65,7 @@ namespace Erp.Web.Localization
                     "en" => "en-US",
                     _ => _localizationOptions.DefaultCulture
                 };
-
+                
                 var cultureInfo = new CultureInfo(mappedCulture);
                 CultureInfo.CurrentCulture = cultureInfo;
                 CultureInfo.CurrentUICulture = cultureInfo;
