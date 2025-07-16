@@ -15,14 +15,13 @@ using MudBlazor;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddMudServices();
-
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddCascadingAuthenticationState();
+
 builder.Services.AddLocalization(options => options.ResourcesPath = "Localization");
+
 builder.Services.AddScoped<LocalizationCache>(sp =>
 {
     var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
@@ -31,34 +30,6 @@ builder.Services.AddScoped<LocalizationCache>(sp =>
 
     return new LocalizationCache(culture);
 });
-
-builder.Services.Configure<LocalizationOptions>(
-    builder.Configuration.GetSection("Localization"));
-
-var localizationOptions = builder.Configuration
-    .GetSection("Localization")
-    .Get<LocalizationOptions>();
-
-var requestLocalizationOptions = new RequestLocalizationOptions()
-    .SetDefaultCulture(localizationOptions.DefaultCulture)
-    .AddSupportedCultures(localizationOptions.SupportedCultures.ToArray())
-    .AddSupportedUICultures(localizationOptions.SupportedCultures.ToArray());
-
-builder.Services.AddMudServices(config =>
-{
-    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
-
-    config.SnackbarConfiguration.PreventDuplicates = false;
-    config.SnackbarConfiguration.NewestOnTop = false;
-    config.SnackbarConfiguration.ShowCloseIcon = true;
-    config.SnackbarConfiguration.VisibleStateDuration = 1000;
-    config.SnackbarConfiguration.HideTransitionDuration = 500;
-    config.SnackbarConfiguration.ShowTransitionDuration = 500;
-    config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
-});
-
-builder.Services.AddCascadingAuthenticationState();
-builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
 
 var oidcSettingsSection = builder.Configuration.GetSection("Authentication");
 builder.Services.Configure<OidcSettings>(oidcSettingsSection);
@@ -102,7 +73,50 @@ builder.Services.AddAuthentication(options =>
         }
     });
 
+
+builder.Services.Configure<LocalizationOptions>(
+    builder.Configuration.GetSection("Localization"));
+
+var localizationOptions = builder.Configuration
+    .GetSection("Localization")
+    .Get<LocalizationOptions>();
+
+var requestLocalizationOptions = new RequestLocalizationOptions()
+    .SetDefaultCulture(localizationOptions.DefaultCulture)
+    .AddSupportedCultures(localizationOptions.SupportedCultures.ToArray())
+    .AddSupportedUICultures(localizationOptions.SupportedCultures.ToArray());
+
+builder.Services.AddMudServices(config =>
+{
+    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
+    config.SnackbarConfiguration.PreventDuplicates = false;
+    config.SnackbarConfiguration.NewestOnTop = false;
+    config.SnackbarConfiguration.ShowCloseIcon = true;
+    config.SnackbarConfiguration.VisibleStateDuration = 1000;
+    config.SnackbarConfiguration.HideTransitionDuration = 500;
+    config.SnackbarConfiguration.ShowTransitionDuration = 500;
+    config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
+});
+
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
+
+builder.Services.AddHttpClient("myClient")
+    .ConfigurePrimaryHttpMessageHandler(() =>
+    {
+        if (builder.Environment.IsDevelopment())
+        {
+            return new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+            };
+        }
+
+        return new HttpClientHandler();
+    });
+
 var app = builder.Build();
+
 app.UseCultureRedirect();
 
 app.UseRequestLocalization(requestLocalizationOptions);
