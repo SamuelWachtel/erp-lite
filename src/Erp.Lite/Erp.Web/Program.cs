@@ -34,6 +34,10 @@ builder.Services.AddScoped<LocalizationCache>(sp =>
 builder.Services.Configure<LocalizationOptions>(
     builder.Configuration.GetSection("Localization"));
 
+var oidcSettingsSection = builder.Configuration.GetSection("Authentication");
+builder.Services.Configure<OidcSettings>(oidcSettingsSection);
+var oidcSettings = oidcSettingsSection.Get<OidcSettings>()!;
+
 builder.Services.AddAuthentication(options =>
     {
         options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
