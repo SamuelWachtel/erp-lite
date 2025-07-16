@@ -71,7 +71,17 @@
     {
         if (!string.IsNullOrWhiteSpace(Culture))
         {
-            var cultureInfo = new CultureInfo(Culture);
+            string culture;
+            if (Culture.Equals("cz", StringComparison.CurrentCultureIgnoreCase))
+            {
+                culture = "cs-Cz";
+            }
+            else
+            {
+                culture = "en-Us";
+            }
+
+            var cultureInfo = new CultureInfo(culture);
             CultureInfo.CurrentCulture = cultureInfo;
             CultureInfo.CurrentUICulture = cultureInfo;
             Loc.SetCulture(cultureInfo);

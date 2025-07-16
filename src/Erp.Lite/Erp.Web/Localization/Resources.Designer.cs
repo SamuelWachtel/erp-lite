@@ -14,7 +14,7 @@ namespace Erp.Web.Localization {
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public partial class Resources {
+    internal partial class Resources {
         
         private static System.Resources.ResourceManager resourceMan;
         
