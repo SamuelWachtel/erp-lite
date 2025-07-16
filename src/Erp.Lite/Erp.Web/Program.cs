@@ -34,6 +34,45 @@ builder.Services.AddScoped<LocalizationCache>(sp =>
 builder.Services.Configure<LocalizationOptions>(
     builder.Configuration.GetSection("Localization"));
 
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+    })
+    .AddCookie()
+    .AddOpenIdConnect(options =>
+    {
+        options.Authority = oidcSettings.Authority;
+        options.ClientId = oidcSettings.ClientId;
+        options.ResponseType = oidcSettings.ResponseType;
+        options.RequireHttpsMetadata = oidcSettings.RequireHttpsMetadata;
+
+        options.SaveTokens = oidcSettings.SaveTokens;
+
+        options.CallbackPath = new PathString(new Uri(oidcSettings.RedirectUri).AbsolutePath);
+        options.SignedOutCallbackPath = new PathString(new Uri(oidcSettings.PostLogoutRedirectUri).AbsolutePath);
+
+        options.UsePkce = true;
+
+        options.Scope.Clear();
+        foreach (var scope in oidcSettings.Scopes)
+        {
+            options.Scope.Add(scope);
+        }
+
+        options.TokenValidationParameters.NameClaimType = "name";
+        options.TokenValidationParameters.RoleClaimType = "role";
+        
+        if (builder.Environment.IsDevelopment())
+        {
+            options.BackchannelHttpHandler = new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+            };
+        }
+    });
+
+
 var localizationOptions = builder.Configuration
     .GetSection("Localization")
     .Get<LocalizationOptions>();
