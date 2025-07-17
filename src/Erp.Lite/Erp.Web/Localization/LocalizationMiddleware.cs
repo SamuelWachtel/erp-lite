@@ -1,7 +1,8 @@
 using System.Globalization;
+using Erp.Web.Localization;
 using Microsoft.Extensions.Options;
 
-namespace Erp.Web.Localization
+namespace Erp.Web.Extensions
 {
     public class LocalizationMiddleware
     {
@@ -18,10 +19,9 @@ namespace Erp.Web.Localization
         {
             var path = context.Request.Path.Value ?? string.Empty;
 
-            // ✅ Skip processing for POSTs and OIDC
             if (!HttpMethods.IsGet(context.Request.Method) ||
                 path.StartsWith("/signin-oidc", StringComparison.OrdinalIgnoreCase) ||
-                path.StartsWith("/connect", StringComparison.OrdinalIgnoreCase)) // For OpenIddict endpoints
+                path.StartsWith("/connect", StringComparison.OrdinalIgnoreCase)) 
             {
                 await _next(context);
                 return;

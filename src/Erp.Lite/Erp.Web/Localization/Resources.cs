@@ -1,3 +1,3 @@
 namespace Erp.Web.Localization;
 
-public partial class Resources;
+internal partial class Resources;
