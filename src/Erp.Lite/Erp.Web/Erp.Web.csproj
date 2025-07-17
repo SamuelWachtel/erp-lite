@@ -51,4 +51,9 @@
         <DependentUpon>Resources.resx</DependentUpon>
       </Compile>
     </ItemGroup>
+
+
+    <ItemGroup>
+      <Content Remove="Components\Pages\LogOutPage.razor" />
+    </ItemGroup>
 </Project>

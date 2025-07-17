@@ -1,10 +1,14 @@
 ﻿@page "/{Culture}"
 @using System.Globalization
 @using Erp.Web.Localization
+@* @using Erp.Web.Localization *@
 @inject NavigationManager Navigation
 @inject LocalizationCache Loc
 
 <PageTitle>Home</PageTitle>
+<button @onclick="OnClick">Click me</button>
+
+<p>@_clickedMessage</p>
 
 <MudText Typo="Typo.h3" GutterBottom="true">Hello, world!</MudText>
 <MudText Class="mb-8">Welcome to your new app, powered by MudBlazor and the .NET 9 Template!</MudText>
@@ -86,6 +90,13 @@
             CultureInfo.CurrentUICulture = cultureInfo;
             Loc.SetCulture(cultureInfo);
         }
+    }
+    
+    private string _clickedMessage = "";
+
+    private void OnClick()
+    {
+        _clickedMessage = "Button clicked at " + DateTime.Now.ToLongTimeString();
     }
     
 }
