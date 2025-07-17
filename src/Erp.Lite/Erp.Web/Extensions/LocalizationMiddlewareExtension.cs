@@ -1,3 +1,5 @@
+using Erp.Web.Localization;
+
 namespace Erp.Web.Extensions;
 
 public static class LocalizationMiddlewareExtension

@@ -5,10 +5,10 @@ using Erp.Web.Config;
 using Erp.Web.Extensions;
 using Erp.Web.Localization;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.WebUtilities;
 using MudBlazor;
@@ -37,10 +37,10 @@ var oidcSettings = oidcSettingsSection.Get<OidcSettings>()!;
 
 builder.Services.AddAuthentication(options =>
     {
-        options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultScheme = IdentityConstants.ApplicationScheme;
         options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
     })
-    .AddCookie()
+    .AddCookie(IdentityConstants.ApplicationScheme)
     .AddOpenIdConnect(options =>
     {
         options.Authority = oidcSettings.Authority;
@@ -143,16 +143,15 @@ app.MapGet("/login", async context =>
 {
     await context.ChallengeAsync(OpenIdConnectDefaults.AuthenticationScheme, new AuthenticationProperties
     {
-        RedirectUri = "/" // redirect after successful login
+        RedirectUri = "/"
     });
 });
 
 app.MapGet("logout", async context =>
 {
-    // Redirect user to the identity provider's logout endpoint with post logout redirect URI
-    var postLogoutRedirectUri = "https://localhost:7104/signout-callback-oidc"; // your client app URL after logout
+    var postLogoutRedirectUri = "https://localhost:7104/login";
 
-    var logoutUrl = QueryHelpers.AddQueryString("https://localhost:7056/connect/logout", new Dictionary<string, string?>
+    var logoutUrl = QueryHelpers.AddQueryString("https://localhost/connect/logout", new Dictionary<string, string?>
     {
         ["post_logout_redirect_uri"] = postLogoutRedirectUri
     });

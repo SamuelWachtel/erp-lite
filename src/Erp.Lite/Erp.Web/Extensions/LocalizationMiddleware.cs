@@ -1,5 +1,6 @@
-using Microsoft.Extensions.Options;
+using System.Globalization;
 using Erp.Web.Localization;
+using Microsoft.Extensions.Options;
 
 namespace Erp.Web.Extensions
 {
@@ -18,6 +19,14 @@ namespace Erp.Web.Extensions
         {
             var path = context.Request.Path.Value ?? string.Empty;
 
+            if (!HttpMethods.IsGet(context.Request.Method) ||
+                path.StartsWith("/signin-oidc", StringComparison.OrdinalIgnoreCase) ||
+                path.StartsWith("/connect", StringComparison.OrdinalIgnoreCase)) 
+            {
+                await _next(context);
+                return;
+            }
+
             if (path.Length > 1 && path.EndsWith("/"))
             {
                 context.Response.Redirect(path.TrimEnd('/'), false);
@@ -25,6 +34,11 @@ namespace Erp.Web.Extensions
             }
 
             if (path.StartsWith("/_framework") ||
+                path.StartsWith("/signin-oidc") ||
+                path.StartsWith("/connect") ||
+                path.StartsWith("/_blazor") ||
+                path.StartsWith("/login") ||
+                path.StartsWith("/logout") ||
                 path.StartsWith("/_content") ||
                 path.StartsWith("/favicon.ico") ||
                 path.StartsWith("/css") ||
@@ -45,16 +59,32 @@ namespace Erp.Web.Extensions
 
             if (_localizationOptions.SupportedCultures.Contains(cultureCandidate))
             {
+                var mappedCulture = cultureCandidate switch
+                {
+                    "cs" => "cs-CZ",
+                    "en" => "en-US",
+                    _ => _localizationOptions.DefaultCulture
+                };
+
+                var cultureInfo = new CultureInfo(mappedCulture);
+                CultureInfo.CurrentCulture = cultureInfo;
+                CultureInfo.CurrentUICulture = cultureInfo;
+
                 await _next(context);
                 return;
             }
 
-            if (cultureCandidate.Length == 2 && cultureCandidate.All(char.IsLetter))
+            if (cultureCandidate.Length == 2 && !_localizationOptions.SupportedCultures.Contains(cultureCandidate))
             {
                 var restOfPath = string.Join('/', segments.Skip(1));
-                var fixedPath = "/" + _localizationOptions.DefaultCulture + (string.IsNullOrEmpty(restOfPath) ? "" : "/" + restOfPath);
-                context.Response.Redirect(fixedPath, false);
-                return;
+                var fixedPath = "/" + _localizationOptions.DefaultCulture +
+                                (string.IsNullOrEmpty(restOfPath) ? "" : "/" + restOfPath);
+
+                if (!context.Request.Path.Value.Equals(fixedPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    context.Response.Redirect(fixedPath, false);
+                    return;
+                }
             }
 
             var newPath = "/" + _localizationOptions.DefaultCulture + path;
